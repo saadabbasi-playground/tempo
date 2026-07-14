@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#EFF1EC">
+<title>Tempo — Focus</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EFF1EC; --ink:#191D24; --ink-60:rgba(25,29,36,.6); --ink-30:rgba(25,29,36,.28);
+  --cobalt:#2B49E0; --signal:#E8542F; --sage:#8D968C; --card:#FFFFFF;
+  --ring-track:#DDE0D8; --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+header{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:18px 20px 6px;max-width:920px;margin:0 auto;
+}
+header h1{font-size:20px;font-weight:700;letter-spacing:-.02em}
+header h1 span{color:var(--cobalt)}
+#clock{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ink-60)}
+nav{
+  display:flex;gap:4px;max-width:920px;margin:8px auto 0;padding:0 20px;
+  border-bottom:1px solid var(--ink-30);
+}
+nav button{
+  appearance:none;border:0;background:none;font:inherit;font-weight:500;
+  padding:10px 14px;cursor:pointer;color:var(--ink-60);
+  border-bottom:2px solid transparent;margin-bottom:-1px;font-size:14px;
+}
+nav button.active{color:var(--ink);border-bottom-color:var(--signal)}
+nav button:focus-visible{outline:2px solid var(--cobalt);outline-offset:-2px}
+main{max-width:920px;margin:0 auto;padding:20px}
+.view{display:none}
+.view.active{display:block}
+
+/* ---------- FOCUS VIEW ---------- */
+.focus-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
+@media(max-width:760px){.focus-grid{grid-template-columns:1fr}}
+.dial-wrap{position:relative;display:flex;flex-direction:column;align-items:center}
+#dial{width:100%;max-width:420px;height:auto;display:block}
+.dial-center{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  text-align:center;pointer-events:none;width:60%;
+}
+#timeLeft{font-family:'IBM Plex Mono',monospace;font-size:clamp(40px,9vw,56px);font-weight:600;letter-spacing:-.02em}
+#phaseLabel{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-60);margin-top:2px}
+#taskLabel{font-size:13px;color:var(--cobalt);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.controls{display:flex;gap:10px;margin-top:18px}
+.btn{
+  appearance:none;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);
+  font:inherit;font-weight:500;font-size:14px;padding:10px 22px;border-radius:999px;cursor:pointer;
+  transition:transform .08s ease;
+}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:none;color:var(--ink)}
+.btn.running{background:var(--signal);border-color:var(--signal)}
+.btn:focus-visible{outline:2px solid var(--cobalt);outline-offset:2px}
+.durations{display:flex;gap:14px;margin-top:14px;font-size:13px;color:var(--ink-60)}
+.durations label{display:flex;align-items:center;gap:6px}
+.durations input{
+  width:52px;font-family:'IBM Plex Mono',monospace;font-size:13px;padding:4px 6px;
+  border:1px solid var(--ink-30);border-radius:6px;background:var(--card);color:var(--ink)
+}
+.panel{background:var(--card);border:1px solid var(--ink-30);border-radius:var(--radius);padding:16px}
+.panel h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-60);margin-bottom:10px}
+#nextUp{list-style:none}
+#nextUp li{
+  display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:8px;cursor:pointer;font-size:14px;
+}
+#nextUp li:hover{background:var(--paper)}
+#nextUp li.selected{background:var(--paper);outline:1.5px solid var(--cobalt)}
+#nextUp li .q{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 6px;border-radius:4px;
+  background:var(--paper);color:var(--ink-60);flex-shrink:0
+}
+#nextUp li.q1 .q{background:var(--signal);color:#fff}
+#nextUp li.q2 .q{background:var(--cobalt);color:#fff}
+.empty{font-size:13px;color:var(--ink-60);padding:8px}
+.today-line{margin-top:16px;font-size:13px;color:var(--ink-60)}
+.today-line b{color:var(--ink);font-family:'IBM Plex Mono',monospace}
+
+/* ---------- PLAN VIEW ---------- */
+.plan-grid{display:grid;grid-template-columns:1fr;gap:24px}
+.row-form{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.row-form input[type=text]{
+  flex:1;min-width:140px;font:inherit;font-size:14px;padding:9px 12px;
+  border:1px solid var(--ink-30);border-radius:8px;background:var(--card);color:var(--ink)
+}
+.row-form input[type=time]{
+  font-family:'IBM Plex Mono',monospace;font-size:13px;padding:8px;border:1px solid var(--ink-30);
+  border-radius:8px;background:var(--card);color:var(--ink)
+}
+.row-form select{
+  font:inherit;font-size:13px;padding:8px;border:1px solid var(--ink-30);border-radius:8px;
+  background:var(--card);color:var(--ink)
+}
+.matrix{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.matrix{grid-template-columns:1fr}}
+.quad{background:var(--card);border:1px solid var(--ink-30);border-radius:var(--radius);padding:12px;min-height:120px}
+.quad h3{font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.quad h3 .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.quad.q1 h3 .dot{background:var(--signal)} .quad.q2 h3 .dot{background:var(--cobalt)}
+.quad.q3 h3 .dot{background:var(--sage)} .quad.q4 h3 .dot{background:var(--ink-30)}
+.quad ul{list-style:none}
+.quad li{display:flex;align-items:center;gap:8px;font-size:14px;padding:6px 4px}
+.quad li button{
+  appearance:none;border:0;background:none;cursor:pointer;color:var(--ink-60);font-size:15px;line-height:1;padding:2px
+}
+.quad li button:hover{color:var(--signal)}
+.quad li .done-btn:hover{color:var(--cobalt)}
+.anchor-list{list-style:none}
+.anchor-list li{
+  display:flex;align-items:center;gap:12px;padding:8px 4px;font-size:14px;
+  border-bottom:1px dashed var(--ink-30)
+}
+.anchor-list li:last-child{border-bottom:0}
+.anchor-list .t{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-60);width:96px;flex-shrink:0}
+.anchor-list .swatch{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.anchor-list button{margin-left:auto;appearance:none;border:0;background:none;cursor:pointer;color:var(--ink-60)}
+.anchor-list button:hover{color:var(--signal)}
+
+/* ---------- STATS VIEW ---------- */
+.stat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+@media(max-width:560px){.stat-cards{grid-template-columns:1fr}}
+.stat{background:var(--card);border:1px solid var(--ink-30);border-radius:var(--radius);padding:16px}
+.stat .big{font-family:'IBM Plex Mono',monospace;font-size:32px;font-weight:600}
+.stat .lbl{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-60);margin-top:4px}
+#chart{width:100%;height:auto;display:block}
+.chart-note{font-size:12px;color:var(--ink-60);margin-top:8px}
+
+@media (prefers-reduced-motion: reduce){
+  *{transition:none !important;animation:none !important}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Tempo<span>.</span></h1>
+  <div id="clock" class="mono"></div>
+</header>
+<nav role="tablist">
+  <button class="active" data-view="focus" role="tab" aria-selected="true">Focus</button>
+  <button data-view="plan" role="tab" aria-selected="false">Plan</button>
+  <button data-view="stats" role="tab" aria-selected="false">Stats</button>
+</nav>
+<main>
+
+<!-- FOCUS -->
+<section id="view-focus" class="view active">
+  <div class="focus-grid">
+    <div class="dial-wrap">
+      <svg id="dial" viewBox="0 0 300 300" aria-hidden="true">
+        <circle cx="150" cy="150" r="140" fill="none" stroke="var(--ring-track)" stroke-width="6"/>
+        <g id="anchorArcs"></g>
+        <g id="hourTicks"></g>
+        <line id="nowHand" x1="150" y1="150" x2="150" y2="14" stroke="var(--ink)" stroke-width="1.5" opacity=".55"/>
+        <circle cx="150" cy="150" r="112" fill="none" stroke="var(--ring-track)" stroke-width="12"/>
+        <circle id="pomoArc" cx="150" cy="150" r="112" fill="none" stroke="var(--cobalt)" stroke-width="12"
+          stroke-linecap="round" transform="rotate(-90 150 150)" stroke-dasharray="703.7" stroke-dashoffset="0"/>
+      </svg>
+      <div class="dial-center">
+        <div id="timeLeft" class="mono">25:00</div>
+        <div id="phaseLabel">Focus</div>
+        <div id="taskLabel"></div>
+      </div>
+      <div class="controls">
+        <button id="startBtn" class="btn">Start focus</button>
+        <button id="resetBtn" class="btn ghost">Reset</button>
+      </div>
+      <div class="durations">
+        <label>Focus <input id="focusMin" class="mono" type="number" min="5" max="120" value="25"> min</label>
+        <label>Break <input id="breakMin" class="mono" type="number" min="1" max="60" value="5"> min</label>
+      </div>
+      <div class="today-line">Today: <b id="todayMins">0</b> focus min · <b id="todaySessions">0</b> sessions</div>
+    </div>
+    <aside class="panel">
+      <h2>Next up</h2>
+      <ul id="nextUp"></ul>
+      <div id="nextUpEmpty" class="empty">No open tasks. Add some in Plan.</div>
+    </aside>
+  </div>
+</section>
+
+<!-- PLAN -->
+<section id="view-plan" class="view">
+  <div class="plan-grid">
+    <div class="panel">
+      <h2>Daily anchors</h2>
+      <div class="row-form">
+        <input id="anchorName" type="text" placeholder="Anchor (e.g. Deep work)" aria-label="Anchor name">
+        <input id="anchorStart" type="time" value="09:00" aria-label="Start time">
+        <input id="anchorEnd" type="time" value="11:00" aria-label="End time">
+        <button id="addAnchor" class="btn">Add anchor</button>
+      </div>
+      <ul id="anchorList" class="anchor-list"></ul>
+    </div>
+    <div class="panel">
+      <h2>Tasks — Eisenhower</h2>
+      <div class="row-form">
+        <input id="taskName" type="text" placeholder="Task" aria-label="Task name">
+        <select id="taskQuad" aria-label="Quadrant">
+          <option value="1">Urgent + Important</option>
+          <option value="2" selected>Important, not urgent</option>
+          <option value="3">Urgent, not important</option>
+          <option value="4">Neither</option>
+        </select>
+        <button id="addTask" class="btn">Add task</button>
+      </div>
+      <div class="matrix">
+        <div class="quad q1"><h3><span class="dot"></span>Do first</h3><ul data-q="1"></ul></div>
+        <div class="quad q2"><h3><span class="dot"></span>Schedule</h3><ul data-q="2"></ul></div>
+        <div class="quad q3"><h3><span class="dot"></span>Delegate / batch</h3><ul data-q="3"></ul></div>
+        <div class="quad q4"><h3><span class="dot"></span>Drop</h3><ul data-q="4"></ul></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section id="view-stats" class="view">
+  <div class="stat-cards">
+    <div class="stat"><div id="statTotal" class="big">0</div><div class="lbl">Focus min · 14 days</div></div>
+    <div class="stat"><div id="statSessions" class="big">0</div><div class="lbl">Sessions · 14 days</div></div>
+    <div class="stat"><div id="statStreak" class="big">0</div><div class="lbl">Day streak</div></div>
+  </div>
+  <div class="panel">
+    <h2>Focus minutes — last 14 days</h2>
+    <svg id="chart" viewBox="0 0 700 220" role="img" aria-label="Bar chart of daily focus minutes"></svg>
+    <p class="chart-note">A day counts toward your streak when it has at least one completed focus session.</p>
+  </div>
+</section>
+</main>
+
+<script>
+/* ---------- storage (localStorage with in-memory fallback) ---------- */
+const mem = {};
+const store = {
+  get(k, fallback){
+    try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; }
+    catch(e){ return k in mem ? mem[k] : fallback; }
+  },
+  set(k, v){
+    try{ localStorage.setItem(k, JSON.stringify(v)); }
+    catch(e){ mem[k] = v; }
+  }
+};
+
+/* ---------- state ---------- */
+let anchors  = store.get('tempo.anchors', [
+  {id:1, name:'Deep work', start:'09:00', end:'11:00'},
+  {id:2, name:'Gym',       start:'17:30', end:'18:30'},
+  {id:3, name:'Weekly review', start:'16:00', end:'16:30'}
+]);
+let tasks    = store.get('tempo.tasks', []);
+let sessions = store.get('tempo.sessions', []); // {date:'YYYY-MM-DD', mins, taskId}
+let selectedTaskId = null;
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const todayKey = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const uid = () => Date.now() + Math.floor(Math.random()*1000);
+function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('nav button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('nav button').forEach(x=>{x.classList.remove('active');x.setAttribute('aria-selected','false');});
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    b.classList.add('active'); b.setAttribute('aria-selected','true');
+    $('#view-'+b.dataset.view).classList.add('active');
+    if(b.dataset.view==='stats') renderStats();
+  });
+});
+
+/* ---------- clock + now hand ---------- */
+function tickClock(){
+  const d = new Date();
+  $('#clock').textContent = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  const frac = (d.getHours()*60 + d.getMinutes()) / 1440;
+  $('#nowHand').setAttribute('transform', `rotate(${frac*360} 150 150)`);
+}
+tickClock(); setInterval(tickClock, 15000);
+
+/* ---------- 24h dial: hour ticks + anchor arcs ---------- */
+function polar(cx, cy, r, angleDeg){
+  const a = (angleDeg-90) * Math.PI/180;
+  return [cx + r*Math.cos(a), cy + r*Math.sin(a)];
+}
+function arcPath(r, a0, a1){
+  const [x0,y0] = polar(150,150,r,a0), [x1,y1] = polar(150,150,r,a1);
+  const large = (a1-a0) > 180 ? 1 : 0;
+  return `M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1}`;
+}
+function renderTicks(){
+  const g = $('#hourTicks'); g.innerHTML='';
+  for(let h=0; h<24; h++){
+    const a = h/24*360;
+    const [x0,y0] = polar(150,150,133,a), [x1,y1] = polar(150,150, h%6===0?126:130, a);
+    g.innerHTML += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--ink-30)" stroke-width="${h%6===0?2:1}"/>`;
+    if(h%6===0){
+      const [tx,ty] = polar(150,150,118,a);
+      g.innerHTML += `<text x="${tx}" y="${ty+3}" font-size="9" text-anchor="middle" fill="var(--ink-60)" font-family="IBM Plex Mono">${String(h).padStart(2,'0')}</text>`;
+    }
+  }
+}
+function minsOf(t){ const [h,m]=t.split(':').map(Number); return h*60+m; }
+function renderAnchorArcs(){
+  const g = $('#anchorArcs'); g.innerHTML='';
+  anchors.forEach(a=>{
+    const a0 = minsOf(a.start)/1440*360, a1 = minsOf(a.end)/1440*360;
+    if(a1 <= a0) return;
+    g.innerHTML += `<path d="${arcPath(140,a0,a1)}" fill="none" stroke="var(--signal)" stroke-width="6" stroke-linecap="round" opacity=".85"><title>${esc(a.name)} ${a.start}–${a.end}</title></path>`;
+  });
+}
+
+/* ---------- Pomodoro ---------- */
+const CIRC = 2*Math.PI*112; // 703.7
+let phase='focus', running=false, remaining=25*60, total=25*60, timerId=null, endAt=null;
+
+function fmt(s){ const m=Math.floor(s/60), ss=s%60; return String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0'); }
+function drawTimer(){
+  $('#timeLeft').textContent = fmt(Math.max(0, remaining));
+  $('#phaseLabel').textContent = phase==='focus' ? 'Focus' : 'Break';
+  const arc = $('#pomoArc');
+  arc.setAttribute('stroke', phase==='focus' ? 'var(--cobalt)' : 'var(--sage)');
+  arc.setAttribute('stroke-dashoffset', CIRC * (1 - remaining/total));
+  document.title = running ? `${fmt(remaining)} · ${phase==='focus'?'Focus':'Break'} — Tempo` : 'Tempo — Focus';
+}
+function beep(){
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = ctx.createOscillator(), gnode = ctx.createGain();
+    o.frequency.value = 660; o.connect(gnode); gnode.connect(ctx.destination);
+    gnode.gain.setValueAtTime(.25, ctx.currentTime);
+    gnode.gain.exponentialRampToValueAtTime(.001, ctx.currentTime+.6);
+    o.start(); o.stop(ctx.currentTime+.6);
+  }catch(e){}
+}
+function setPhase(p){
+  phase = p;
+  const mins = p==='focus' ? +($('#focusMin').value||25) : +($('#breakMin').value||5);
+  total = remaining = mins*60;
+  drawTimer();
+}
+function startPause(){
+  if(running){
+    running = false; clearInterval(timerId);
+    $('#startBtn').textContent = phase==='focus' ? 'Resume focus' : 'Resume break';
+    $('#startBtn').classList.remove('running');
+  } else {
+    running = true;
+    endAt = Date.now() + remaining*1000;
+    $('#startBtn').textContent = 'Pause';
+    $('#startBtn').classList.add('running');
+    timerId = setInterval(()=>{
+      remaining = Math.round((endAt - Date.now())/1000);
+      if(remaining <= 0){
+        remaining = 0; drawTimer(); clearInterval(timerId); running=false; beep();
+        if(phase==='focus'){
+          logSession(total/60);
+          setPhase('break'); $('#startBtn').textContent='Start break';
+        } else {
+          setPhase('focus'); $('#startBtn').textContent='Start focus';
+        }
+        $('#startBtn').classList.remove('running');
+        return;
+      }
+      drawTimer();
+    }, 250);
+  }
+  drawTimer();
+}
+function resetTimer(){
+  running=false; clearInterval(timerId);
+  setPhase('focus');
+  $('#startBtn').textContent='Start focus';
+  $('#startBtn').classList.remove('running');
+}
+$('#startBtn').addEventListener('click', startPause);
+$('#resetBtn').addEventListener('click', resetTimer);
+$('#focusMin').addEventListener('change', ()=>{ if(!running && phase==='focus') setPhase('focus'); });
+$('#breakMin').addEventListener('change', ()=>{ if(!running && phase==='break') setPhase('break'); });
+
+function logSession(mins){
+  sessions.push({date: todayKey(), mins, taskId: selectedTaskId});
+  store.set('tempo.sessions', sessions);
+  renderTodayLine();
+}
+function renderTodayLine(){
+  const t = todayKey();
+  const todays = sessions.filter(s=>s.date===t);
+  $('#todayMins').textContent = todays.reduce((a,s)=>a+s.mins,0);
+  $('#todaySessions').textContent = todays.length;
+}
+
+/* ---------- tasks ---------- */
+function renderTasks(){
+  document.querySelectorAll('.quad ul').forEach(u=>u.innerHTML='');
+  tasks.filter(t=>!t.done).forEach(t=>{
+    const ul = document.querySelector(`.quad ul[data-q="${t.q}"]`);
+    if(!ul) return;
+    const li = document.createElement('li');
+    li.innerHTML = `<button class="done-btn" title="Mark done" aria-label="Mark done">✓</button><span>${esc(t.name)}</span><button class="del" title="Delete" aria-label="Delete" style="margin-left:auto">×</button>`;
+    li.querySelector('.done-btn').addEventListener('click',()=>{ t.done=true; saveTasks(); });
+    li.querySelector('.del').addEventListener('click',()=>{ tasks=tasks.filter(x=>x.id!==t.id); saveTasks(); });
+    ul.appendChild(li);
+  });
+  renderNextUp();
+}
+function saveTasks(){ store.set('tempo.tasks', tasks); renderTasks(); }
+$('#addTask').addEventListener('click', ()=>{
+  const name = $('#taskName').value.trim(); if(!name) return;
+  tasks.push({id:uid(), name, q:+$('#taskQuad').value, done:false});
+  $('#taskName').value=''; saveTasks();
+});
+$('#taskName').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#addTask').click(); });
+
+function renderNextUp(){
+  const open = tasks.filter(t=>!t.done).sort((a,b)=>a.q-b.q).slice(0,6);
+  const ul = $('#nextUp'); ul.innerHTML='';
+  $('#nextUpEmpty').style.display = open.length ? 'none' : 'block';
+  open.forEach(t=>{
+    const li = document.createElement('li');
+    li.className = 'q'+t.q + (t.id===selectedTaskId?' selected':'');
+    li.innerHTML = `<span class="q">Q${t.q}</span><span>${esc(t.name)}</span>`;
+    li.addEventListener('click',()=>{
+      selectedTaskId = t.id===selectedTaskId ? null : t.id;
+      $('#taskLabel').textContent = selectedTaskId ? t.name : '';
+      renderNextUp();
+    });
+    ul.appendChild(li);
+  });
+  if(selectedTaskId && !tasks.find(t=>t.id===selectedTaskId && !t.done)){
+    selectedTaskId=null; $('#taskLabel').textContent='';
+  }
+}
+
+/* ---------- anchors ---------- */
+function renderAnchors(){
+  const ul = $('#anchorList'); ul.innerHTML='';
+  anchors.slice().sort((a,b)=>minsOf(a.start)-minsOf(b.start)).forEach(a=>{
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="swatch" style="background:var(--signal)"></span><span class="t mono">${a.start}–${a.end}</span><span>${esc(a.name)}</span><button title="Delete" aria-label="Delete">×</button>`;
+    li.querySelector('button').addEventListener('click',()=>{
+      anchors = anchors.filter(x=>x.id!==a.id);
+      store.set('tempo.anchors', anchors); renderAnchors(); renderAnchorArcs();
+    });
+    ul.appendChild(li);
+  });
+}
+$('#addAnchor').addEventListener('click',()=>{
+  const name = $('#anchorName').value.trim(); if(!name) return;
+  anchors.push({id:uid(), name, start:$('#anchorStart').value, end:$('#anchorEnd').value});
+  store.set('tempo.anchors', anchors);
+  $('#anchorName').value='';
+  renderAnchors(); renderAnchorArcs();
+});
+
+/* ---------- stats ---------- */
+function lastNDays(n){
+  const out=[];
+  for(let i=n-1;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    out.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));
+  }
+  return out;
+}
+function renderStats(){
+  const days = lastNDays(14);
+  const byDay = days.map(d => sessions.filter(s=>s.date===d).reduce((a,s)=>a+s.mins,0));
+  const nSessions = days.reduce((a,d)=>a+sessions.filter(s=>s.date===d).length,0);
+  $('#statTotal').textContent = byDay.reduce((a,b)=>a+b,0);
+  $('#statSessions').textContent = nSessions;
+
+  let streak=0;
+  for(let i=0;;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const has = sessions.some(s=>s.date===k);
+    if(has) streak++;
+    else if(i===0) continue;   // today can still be earned
+    else break;
+  }
+  $('#statStreak').textContent = streak;
+
+  const svg = $('#chart'); svg.innerHTML='';
+  const W=700, H=220, pad=28, bw=(W-pad*2)/14 - 8;
+  const max = Math.max(60, ...byDay);
+  days.forEach((d,i)=>{
+    const v = byDay[i];
+    const h = v/max*(H-pad*2);
+    const x = pad + i*((W-pad*2)/14) + 4;
+    const y = H-pad-h;
+    const isToday = i===13;
+    svg.innerHTML += `<rect x="${x}" y="${y}" width="${bw}" height="${Math.max(h,2)}" rx="4" fill="${isToday?'var(--signal)':'var(--cobalt)'}" opacity="${v? '1':'0.25'}"><title>${d}: ${v} min</title></rect>`;
+    svg.innerHTML += `<text x="${x+bw/2}" y="${H-10}" font-size="9" text-anchor="middle" fill="var(--ink-60)" font-family="IBM Plex Mono">${d.slice(8)}</text>`;
+    if(v) svg.innerHTML += `<text x="${x+bw/2}" y="${y-5}" font-size="9" text-anchor="middle" fill="var(--ink-60)" font-family="IBM Plex Mono">${v}</text>`;
+  });
+}
+
+/* ---------- init ---------- */
+renderTicks(); renderAnchorArcs(); renderAnchors(); renderTasks(); renderTodayLine();
+setPhase('focus'); drawTimer();
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
