@@ -4,8 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#EFF1EC">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tempo">
 <title>Tempo — Focus</title>
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -50,7 +53,8 @@ main{max-width:920px;margin:0 auto;padding:20px}
 .focus-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
 @media(max-width:760px){.focus-grid{grid-template-columns:1fr}}
 .dial-wrap{position:relative;display:flex;flex-direction:column;align-items:center}
-#dial{width:100%;max-width:420px;height:auto;display:block}
+.dial-box{position:relative;width:100%;max-width:420px}
+#dial{width:100%;height:auto;display:block}
 .dial-center{
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   text-align:center;pointer-events:none;width:60%;
@@ -58,7 +62,39 @@ main{max-width:920px;margin:0 auto;padding:20px}
 #timeLeft{font-family:'IBM Plex Mono',monospace;font-size:clamp(40px,9vw,56px);font-weight:600;letter-spacing:-.02em}
 #phaseLabel{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-60);margin-top:2px}
 #taskLabel{font-size:13px;color:var(--cobalt);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.controls{display:flex;gap:10px;margin-top:18px}
+
+.goal-row{width:100%;max-width:420px;margin-top:16px}
+.goal-row label{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-60);margin-bottom:6px}
+#goalInput{
+  width:100%;font:inherit;font-size:15px;padding:10px 12px;
+  border:1.5px solid var(--ink-30);border-radius:10px;background:var(--card);color:var(--ink)
+}
+#goalInput:focus{outline:none;border-color:var(--cobalt)}
+#goalInput.need{border-color:var(--signal)}
+#goalInput:disabled{color:var(--ink);opacity:1;background:var(--paper);border-style:dashed}
+.goal-hint{font-size:12px;color:var(--signal);margin-top:6px;display:none}
+.goal-hint.show{display:block}
+
+.mode-row{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:center;margin-top:14px}
+.seg{display:inline-flex;border:1.5px solid var(--ink);border-radius:999px;overflow:hidden}
+.seg button{
+  appearance:none;border:0;background:none;font:inherit;font-size:13px;font-weight:500;
+  padding:6px 14px;cursor:pointer;color:var(--ink)
+}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg button:disabled{cursor:not-allowed}
+.seg button:focus-visible{outline:2px solid var(--cobalt);outline-offset:-3px}
+.chips{display:flex;gap:6px}
+.chip{
+  appearance:none;border:1px solid var(--ink-30);background:var(--card);
+  font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 10px;border-radius:999px;
+  cursor:pointer;color:var(--ink)
+}
+.chip.active{border-color:var(--cobalt);color:var(--cobalt);box-shadow:inset 0 0 0 1px var(--cobalt)}
+.chip:disabled{cursor:not-allowed;opacity:.55}
+.chip:focus-visible{outline:2px solid var(--cobalt);outline-offset:2px}
+
+.controls{display:flex;gap:10px;margin-top:16px}
 .btn{
   appearance:none;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);
   font:inherit;font-weight:500;font-size:14px;padding:10px 22px;border-radius:999px;cursor:pointer;
@@ -67,6 +103,7 @@ main{max-width:920px;margin:0 auto;padding:20px}
 .btn:active{transform:scale(.97)}
 .btn.ghost{background:none;color:var(--ink)}
 .btn.running{background:var(--signal);border-color:var(--signal)}
+.btn.small{font-size:13px;padding:7px 16px}
 .btn:focus-visible{outline:2px solid var(--cobalt);outline-offset:2px}
 .durations{display:flex;gap:14px;margin-top:14px;font-size:13px;color:var(--ink-60)}
 .durations label{display:flex;align-items:center;gap:6px}
@@ -74,6 +111,33 @@ main{max-width:920px;margin:0 auto;padding:20px}
   width:52px;font-family:'IBM Plex Mono',monospace;font-size:13px;padding:4px 6px;
   border:1px solid var(--ink-30);border-radius:6px;background:var(--card);color:var(--ink)
 }
+.today-line{margin-top:16px;font-size:13px;color:var(--ink-60)}
+.today-line b{color:var(--ink);font-family:'IBM Plex Mono',monospace}
+
+.meter{width:100%;max-width:420px;margin-top:14px}
+.meter-top{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-60)}
+.meter-top b{color:var(--ink)}
+.meter-bar{height:8px;border-radius:99px;background:var(--ring-track);margin-top:6px;overflow:hidden}
+.meter-fill{height:100%;width:0;background:var(--cobalt);border-radius:99px;transition:width .3s ease}
+.meter.over .meter-fill{background:var(--signal)}
+.meter-note{font-size:12px;color:var(--signal);margin-top:6px;display:none}
+.meter.over .meter-note{display:block}
+
+.ladder{
+  width:100%;max-width:420px;margin-top:12px;font-size:12px;color:var(--ink-60);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap
+}
+.ladder b{color:var(--ink)}
+.pips{display:flex;gap:4px}
+.pip{width:10px;height:10px;border-radius:3px;background:var(--ring-track)}
+.pip.on{background:var(--cobalt)}
+.levelup{
+  width:100%;max-width:420px;margin-top:12px;padding:14px;border-radius:var(--radius);
+  background:var(--card);border:1.5px solid var(--cobalt)
+}
+.levelup p{font-size:14px;margin-bottom:10px}
+.levelup div{display:flex;gap:8px}
+
 .panel{background:var(--card);border:1px solid var(--ink-30);border-radius:var(--radius);padding:16px}
 .panel h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-60);margin-bottom:10px}
 #nextUp{list-style:none}
@@ -88,9 +152,32 @@ main{max-width:920px;margin:0 auto;padding:20px}
 }
 #nextUp li.q1 .q{background:var(--signal);color:#fff}
 #nextUp li.q2 .q{background:var(--cobalt);color:#fff}
+#nextUp li .name{flex:1;min-width:0}
 .empty{font-size:13px;color:var(--ink-60);padding:8px}
-.today-line{margin-top:16px;font-size:13px;color:var(--ink-60)}
-.today-line b{color:var(--ink);font-family:'IBM Plex Mono',monospace}
+
+.tag{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 6px;border-radius:4px;
+  border:1px solid var(--ink-30);color:var(--ink-60);background:none;flex-shrink:0;line-height:1.3
+}
+.tag.deep{color:var(--cobalt);border-color:var(--cobalt)}
+.tag.shallow{color:var(--sage);border-color:var(--sage)}
+button.tag{cursor:pointer}
+
+/* ---------- OUTCOME SHEET ---------- */
+.overlay{
+  position:fixed;inset:0;background:rgba(25,29,36,.45);display:none;
+  align-items:center;justify-content:center;padding:20px;z-index:10
+}
+.overlay.show{display:flex}
+.sheet{background:var(--card);border-radius:18px;padding:22px;max-width:380px;width:100%}
+.sheet .kicker{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-60)}
+.sheet h3{font-size:20px;margin:6px 0 10px;letter-spacing:-.01em}
+.out-goal{
+  font-size:15px;padding:10px 12px;border-left:3px solid var(--cobalt);background:var(--paper);
+  border-radius:0 8px 8px 0;margin-bottom:16px;word-break:break-word
+}
+.outcomes{display:flex;gap:8px;flex-wrap:wrap}
+.outcomes .btn{flex:1}
 
 /* ---------- PLAN VIEW ---------- */
 .plan-grid{display:grid;grid-template-columns:1fr;gap:24px}
@@ -107,6 +194,8 @@ main{max-width:920px;margin:0 auto;padding:20px}
   font:inherit;font-size:13px;padding:8px;border:1px solid var(--ink-30);border-radius:8px;
   background:var(--card);color:var(--ink)
 }
+.row-form .check{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-60)}
+.hint{font-size:12px;color:var(--ink-60);margin:-4px 0 12px;line-height:1.45}
 .matrix{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:560px){.matrix{grid-template-columns:1fr}}
 .quad{background:var(--card);border:1px solid var(--ink-30);border-radius:var(--radius);padding:12px;min-height:120px}
@@ -116,10 +205,11 @@ main{max-width:920px;margin:0 auto;padding:20px}
 .quad.q3 h3 .dot{background:var(--sage)} .quad.q4 h3 .dot{background:var(--ink-30)}
 .quad ul{list-style:none}
 .quad li{display:flex;align-items:center;gap:8px;font-size:14px;padding:6px 4px}
-.quad li button{
+.quad li .name{flex:1;min-width:0}
+.quad li button.icon{
   appearance:none;border:0;background:none;cursor:pointer;color:var(--ink-60);font-size:15px;line-height:1;padding:2px
 }
-.quad li button:hover{color:var(--signal)}
+.quad li .del:hover{color:var(--signal)}
 .quad li .done-btn:hover{color:var(--cobalt)}
 .anchor-list{list-style:none}
 .anchor-list li{
@@ -134,11 +224,15 @@ main{max-width:920px;margin:0 auto;padding:20px}
 
 /* ---------- STATS VIEW ---------- */
 .stat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
-@media(max-width:560px){.stat-cards{grid-template-columns:1fr}}
+@media(max-width:560px){.stat-cards{grid-template-columns:1fr 1fr}}
 .stat{background:var(--card);border:1px solid var(--ink-30);border-radius:var(--radius);padding:16px}
-.stat .big{font-family:'IBM Plex Mono',monospace;font-size:32px;font-weight:600}
-.stat .lbl{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-60);margin-top:4px}
+.stat .big{font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:600}
+.stat .lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-60);margin-top:4px}
+.stat .sub{font-size:12px;color:var(--ink-60);margin-top:6px}
 #chart{width:100%;height:auto;display:block}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-60);margin-top:10px}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
 .chart-note{font-size:12px;color:var(--ink-60);margin-top:8px}
 
 @media (prefers-reduced-motion: reduce){
@@ -162,29 +256,71 @@ main{max-width:920px;margin:0 auto;padding:20px}
 <section id="view-focus" class="view active">
   <div class="focus-grid">
     <div class="dial-wrap">
-      <svg id="dial" viewBox="0 0 300 300" aria-hidden="true">
-        <circle cx="150" cy="150" r="140" fill="none" stroke="var(--ring-track)" stroke-width="6"/>
-        <g id="anchorArcs"></g>
-        <g id="hourTicks"></g>
-        <line id="nowHand" x1="150" y1="150" x2="150" y2="14" stroke="var(--ink)" stroke-width="1.5" opacity=".55"/>
-        <circle cx="150" cy="150" r="112" fill="none" stroke="var(--ring-track)" stroke-width="12"/>
-        <circle id="pomoArc" cx="150" cy="150" r="112" fill="none" stroke="var(--cobalt)" stroke-width="12"
-          stroke-linecap="round" transform="rotate(-90 150 150)" stroke-dasharray="703.7" stroke-dashoffset="0"/>
-      </svg>
-      <div class="dial-center">
-        <div id="timeLeft" class="mono">25:00</div>
-        <div id="phaseLabel">Focus</div>
-        <div id="taskLabel"></div>
+      <div class="dial-box">
+        <svg id="dial" viewBox="0 0 300 300" aria-hidden="true">
+          <circle cx="150" cy="150" r="140" fill="none" stroke="var(--ring-track)" stroke-width="6"/>
+          <g id="anchorArcs"></g>
+          <g id="hourTicks"></g>
+          <line id="nowHand" x1="150" y1="150" x2="150" y2="14" stroke="var(--ink)" stroke-width="1.5" opacity=".55"/>
+          <circle cx="150" cy="150" r="112" fill="none" stroke="var(--ring-track)" stroke-width="12"/>
+          <circle id="pomoArc" cx="150" cy="150" r="112" fill="none" stroke="var(--cobalt)" stroke-width="12"
+            stroke-linecap="round" transform="rotate(-90 150 150)" stroke-dasharray="703.7" stroke-dashoffset="0"/>
+        </svg>
+        <div class="dial-center">
+          <div id="timeLeft" class="mono">30:00</div>
+          <div id="phaseLabel">Deep focus</div>
+          <div id="taskLabel"></div>
+        </div>
       </div>
+
+      <div class="goal-row">
+        <label for="goalInput">Done looks like…</label>
+        <input id="goalInput" type="text" maxlength="140" autocomplete="off"
+          placeholder="e.g. First draft of section 2 written">
+        <div id="goalHint" class="goal-hint" role="alert">Set a goal first: what will be finished when the timer ends?</div>
+      </div>
+
+      <div class="mode-row">
+        <div class="seg" role="group" aria-label="Session type">
+          <button type="button" data-type="deep" aria-pressed="true">Deep</button>
+          <button type="button" data-type="shallow" aria-pressed="false">Shallow</button>
+        </div>
+        <div class="chips" role="group" aria-label="Session length">
+          <button type="button" class="chip" data-min="25" title="Pomodoro: 25 focus / 5 break">25</button>
+          <button type="button" class="chip" data-min="30" title="30 focus / 5 break">30</button>
+          <button type="button" class="chip" data-min="60" title="60 focus / 10 break">60</button>
+          <button type="button" class="chip" data-min="90" title="90 focus / 15 break">90</button>
+        </div>
+      </div>
+
       <div class="controls">
         <button id="startBtn" class="btn">Start focus</button>
         <button id="resetBtn" class="btn ghost">Reset</button>
       </div>
       <div class="durations">
-        <label>Focus <input id="focusMin" class="mono" type="number" min="5" max="120" value="25"> min</label>
+        <label>Focus <input id="focusMin" class="mono" type="number" min="5" max="180" value="30"> min</label>
         <label>Break <input id="breakMin" class="mono" type="number" min="1" max="60" value="5"> min</label>
       </div>
       <div class="today-line">Today: <b id="todayMins">0</b> focus min · <b id="todaySessions">0</b> sessions</div>
+
+      <div id="meter" class="meter">
+        <div class="meter-top"><span>Deep work today</span><span class="mono"><b id="deepToday">0</b> / <span id="deepCap">240</span> min</span></div>
+        <div class="meter-bar"><div id="meterFill" class="meter-fill"></div></div>
+        <div class="meter-note">You're past the ~4 hour deep work ceiling. Quality drops from here, so switch to shallow work or rest.</div>
+      </div>
+
+      <div class="ladder">
+        <span>Deep level <b id="ladderLevel" class="mono">30</b> min</span>
+        <span id="pips" class="pips" aria-hidden="true"></span>
+        <span id="ladderNext"></span>
+      </div>
+      <div id="levelUp" class="levelup" hidden>
+        <p id="levelUpText"></p>
+        <div>
+          <button id="levelUpYes" class="btn small">Level up</button>
+          <button id="levelUpNo" class="btn ghost small">Not yet</button>
+        </div>
+      </div>
     </div>
     <aside class="panel">
       <h2>Next up</h2>
@@ -217,8 +353,13 @@ main{max-width:920px;margin:0 auto;padding:20px}
           <option value="3">Urgent, not important</option>
           <option value="4">Neither</option>
         </select>
+        <select id="taskType" aria-label="Work type">
+          <option value="deep" selected>Deep</option>
+          <option value="shallow">Shallow</option>
+        </select>
         <button id="addTask" class="btn">Add task</button>
       </div>
+      <p class="hint"><b>Deep or shallow?</b> Ask: how long would it take to train a smart, motivated person to do this? Weeks or months → deep. A day or two → shallow. Tap a task's tag to switch it.</p>
       <div class="matrix">
         <div class="quad q1"><h3><span class="dot"></span>Do first</h3><ul data-q="1"></ul></div>
         <div class="quad q2"><h3><span class="dot"></span>Schedule</h3><ul data-q="2"></ul></div>
@@ -235,14 +376,36 @@ main{max-width:920px;margin:0 auto;padding:20px}
     <div class="stat"><div id="statTotal" class="big">0</div><div class="lbl">Focus min · 14 days</div></div>
     <div class="stat"><div id="statSessions" class="big">0</div><div class="lbl">Sessions · 14 days</div></div>
     <div class="stat"><div id="statStreak" class="big">0</div><div class="lbl">Day streak</div></div>
+    <div class="stat"><div id="statDeep" class="big">—</div><div class="lbl">Deep ratio · 14 days</div><div id="statDeepSub" class="sub"></div></div>
+    <div class="stat"><div id="statHit" class="big">—</div><div class="lbl">Goals hit · 14 days</div><div id="statHitSub" class="sub"></div></div>
+    <div class="stat"><div id="statLevel" class="big">30</div><div class="lbl">Deep level (min)</div><div id="statLevelSub" class="sub"></div></div>
   </div>
   <div class="panel">
     <h2>Focus minutes — last 14 days</h2>
-    <svg id="chart" viewBox="0 0 700 220" role="img" aria-label="Bar chart of daily focus minutes"></svg>
-    <p class="chart-note">A day counts toward your streak when it has at least one completed focus session.</p>
+    <svg id="chart" viewBox="0 0 700 220" role="img" aria-label="Stacked bar chart of daily deep and shallow focus minutes"></svg>
+    <div class="legend">
+      <span><i style="background:var(--cobalt)"></i>Deep</span>
+      <span><i style="background:var(--sage)"></i>Shallow</span>
+      <span><i style="background:var(--ink-30)"></i>Untagged (older sessions)</span>
+    </div>
+    <p class="chart-note">Deep ratio = deep minutes ÷ tagged minutes. A day counts toward your streak when it has at least one completed focus session.</p>
   </div>
 </section>
 </main>
+
+<!-- OUTCOME SHEET -->
+<div id="outcome" class="overlay" role="dialog" aria-modal="true" aria-labelledby="outcomeTitle">
+  <div class="sheet">
+    <div class="kicker">Session complete · <span id="outMeta"></span></div>
+    <h3 id="outcomeTitle">Did you hit your goal?</h3>
+    <p id="outGoal" class="out-goal"></p>
+    <div class="outcomes">
+      <button class="btn" data-outcome="hit">Hit it</button>
+      <button class="btn ghost" data-outcome="partial">Partly</button>
+      <button class="btn ghost" data-outcome="missed">Missed</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ---------- storage (localStorage with in-memory fallback) ---------- */
@@ -258,21 +421,33 @@ const store = {
   }
 };
 
+/* ---------- constants ---------- */
+const PRESETS = {25:5, 30:5, 60:10, 90:15};   // focus min -> break min
+const LEVELS = [30, 60, 90];                   // deep work ladder
+const LADDER_N = 5;                            // sessions needed to level up
+const DAILY_DEEP_CAP = 240;                    // ~4 hours of real deep work
+
 /* ---------- state ---------- */
 let anchors  = store.get('tempo.anchors', [
   {id:1, name:'Deep work', start:'09:00', end:'11:00'},
   {id:2, name:'Gym',       start:'17:30', end:'18:30'},
   {id:3, name:'Weekly review', start:'16:00', end:'16:30'}
 ]);
-let tasks    = store.get('tempo.tasks', []);
-let sessions = store.get('tempo.sessions', []); // {date:'YYYY-MM-DD', mins, taskId}
+let tasks    = store.get('tempo.tasks', []);       // {id, name, q, done, type:'deep'|'shallow'}
+let sessions = store.get('tempo.sessions', []);    // {date, ts, mins, taskId, type, goal, outcome}
+let ladder   = store.get('tempo.ladder', {level:30, since:0, snoozedAt:-1});
+let prefs    = store.get('tempo.prefs', {focus:ladder.level, brk:PRESETS[ladder.level] || 5, type:'deep'});
 let selectedTaskId = null;
+let sessionType = prefs.type === 'shallow' ? 'shallow' : 'deep';
+let currentGoal = '';
 
 /* ---------- helpers ---------- */
 const $ = s => document.querySelector(s);
-const todayKey = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const dayKey = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const todayKey = () => dayKey(new Date());
 const uid = () => Date.now() + Math.floor(Math.random()*1000);
 function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function savePrefs(){ store.set('tempo.prefs', prefs); }
 
 /* ---------- tabs ---------- */
 document.querySelectorAll('nav button').forEach(b=>{
@@ -305,39 +480,71 @@ function arcPath(r, a0, a1){
   return `M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1}`;
 }
 function renderTicks(){
-  const g = $('#hourTicks'); g.innerHTML='';
+  const g = $('#hourTicks'); let html='';
   for(let h=0; h<24; h++){
     const a = h/24*360;
     const [x0,y0] = polar(150,150,133,a), [x1,y1] = polar(150,150, h%6===0?126:130, a);
-    g.innerHTML += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--ink-30)" stroke-width="${h%6===0?2:1}"/>`;
+    html += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--ink-30)" stroke-width="${h%6===0?2:1}"/>`;
     if(h%6===0){
       const [tx,ty] = polar(150,150,118,a);
-      g.innerHTML += `<text x="${tx}" y="${ty+3}" font-size="9" text-anchor="middle" fill="var(--ink-60)" font-family="IBM Plex Mono">${String(h).padStart(2,'0')}</text>`;
+      html += `<text x="${tx}" y="${ty+3}" font-size="9" text-anchor="middle" fill="var(--ink-60)" font-family="IBM Plex Mono">${String(h).padStart(2,'0')}</text>`;
     }
   }
+  g.innerHTML = html;
 }
 function minsOf(t){ const [h,m]=t.split(':').map(Number); return h*60+m; }
 function renderAnchorArcs(){
-  const g = $('#anchorArcs'); g.innerHTML='';
+  const g = $('#anchorArcs'); let html='';
   anchors.forEach(a=>{
     const a0 = minsOf(a.start)/1440*360, a1 = minsOf(a.end)/1440*360;
     if(a1 <= a0) return;
-    g.innerHTML += `<path d="${arcPath(140,a0,a1)}" fill="none" stroke="var(--signal)" stroke-width="6" stroke-linecap="round" opacity=".85"><title>${esc(a.name)} ${a.start}–${a.end}</title></path>`;
+    html += `<path d="${arcPath(140,a0,a1)}" fill="none" stroke="var(--signal)" stroke-width="6" stroke-linecap="round" opacity=".85"><title>${esc(a.name)} ${a.start}–${a.end}</title></path>`;
   });
+  g.innerHTML = html;
 }
 
-/* ---------- Pomodoro ---------- */
+/* ---------- session type (deep / shallow) ---------- */
+function setType(t){
+  sessionType = t;
+  prefs.type = t; savePrefs();
+  document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.type===t)));
+  drawTimer();
+}
+document.querySelectorAll('.seg button').forEach(b=>{
+  b.addEventListener('click', ()=>{ if(!inSession()) setType(b.dataset.type); });
+});
+
+/* ---------- length presets ---------- */
+function markChip(){
+  const v = +$('#focusMin').value;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active', +c.dataset.min===v));
+}
+function applyPreset(min){
+  $('#focusMin').value = min;
+  $('#breakMin').value = PRESETS[min] || 5;
+  prefs.focus = min; prefs.brk = PRESETS[min] || 5; savePrefs();
+  markChip();
+  if(!running && phase==='focus') setPhase('focus');
+}
+document.querySelectorAll('.chip').forEach(c=>{
+  c.addEventListener('click', ()=>{ if(!inSession()) applyPreset(+c.dataset.min); });
+});
+
+/* ---------- timer ---------- */
 const CIRC = 2*Math.PI*112; // 703.7
-let phase='focus', running=false, remaining=25*60, total=25*60, timerId=null, endAt=null;
+let phase='focus', running=false, remaining=30*60, total=30*60, timerId=null, endAt=null;
+
+function inSession(){ return phase==='focus' && (running || remaining < total); }
 
 function fmt(s){ const m=Math.floor(s/60), ss=s%60; return String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0'); }
 function drawTimer(){
   $('#timeLeft').textContent = fmt(Math.max(0, remaining));
-  $('#phaseLabel').textContent = phase==='focus' ? 'Focus' : 'Break';
+  const label = phase==='focus' ? (sessionType==='deep' ? 'Deep focus' : 'Shallow focus') : 'Break';
+  $('#phaseLabel').textContent = label;
   const arc = $('#pomoArc');
-  arc.setAttribute('stroke', phase==='focus' ? 'var(--cobalt)' : 'var(--sage)');
+  arc.setAttribute('stroke', phase==='break' ? 'var(--sage)' : (sessionType==='deep' ? 'var(--cobalt)' : 'var(--sage)'));
   arc.setAttribute('stroke-dashoffset', CIRC * (1 - remaining/total));
-  document.title = running ? `${fmt(remaining)} · ${phase==='focus'?'Focus':'Break'} — Tempo` : 'Tempo — Focus';
+  document.title = running ? `${fmt(remaining)} · ${label} — Tempo` : 'Tempo — Focus';
 }
 function beep(){
   try{
@@ -351,71 +558,166 @@ function beep(){
 }
 function setPhase(p){
   phase = p;
-  const mins = p==='focus' ? +($('#focusMin').value||25) : +($('#breakMin').value||5);
+  const mins = p==='focus' ? +($('#focusMin').value||30) : +($('#breakMin').value||5);
   total = remaining = mins*60;
   drawTimer();
+}
+function setLocked(locked){
+  $('#goalInput').disabled = locked;
+  $('#focusMin').disabled = locked;
+  document.querySelectorAll('.seg button, .chip').forEach(b=>b.disabled = locked);
 }
 function startPause(){
   if(running){
     running = false; clearInterval(timerId);
     $('#startBtn').textContent = phase==='focus' ? 'Resume focus' : 'Resume break';
     $('#startBtn').classList.remove('running');
-  } else {
-    running = true;
-    endAt = Date.now() + remaining*1000;
-    $('#startBtn').textContent = 'Pause';
-    $('#startBtn').classList.add('running');
-    timerId = setInterval(()=>{
-      remaining = Math.round((endAt - Date.now())/1000);
-      if(remaining <= 0){
-        remaining = 0; drawTimer(); clearInterval(timerId); running=false; beep();
-        if(phase==='focus'){
-          logSession(total/60);
-          setPhase('break'); $('#startBtn').textContent='Start break';
-        } else {
-          setPhase('focus'); $('#startBtn').textContent='Start focus';
-        }
-        $('#startBtn').classList.remove('running');
-        return;
-      }
-      drawTimer();
-    }, 250);
+    drawTimer();
+    return;
   }
+  // Fresh focus session: a concrete goal is required.
+  if(phase==='focus' && remaining===total){
+    const g = $('#goalInput').value.trim();
+    if(!g){
+      $('#goalInput').classList.add('need');
+      $('#goalHint').classList.add('show');
+      $('#goalInput').focus();
+      return;
+    }
+    currentGoal = g;
+    setLocked(true);
+  }
+  running = true;
+  endAt = Date.now() + remaining*1000;
+  $('#startBtn').textContent = 'Pause';
+  $('#startBtn').classList.add('running');
+  timerId = setInterval(tick, 250);
   drawTimer();
+}
+function tick(){
+  remaining = Math.round((endAt - Date.now())/1000);
+  if(remaining > 0){ drawTimer(); return; }
+  remaining = 0; drawTimer(); clearInterval(timerId); running=false; beep();
+  $('#startBtn').classList.remove('running');
+  if(phase==='focus'){
+    openOutcome();
+  } else {
+    setPhase('focus'); $('#startBtn').textContent='Start focus';
+  }
 }
 function resetTimer(){
   running=false; clearInterval(timerId);
+  setLocked(false);
   setPhase('focus');
   $('#startBtn').textContent='Start focus';
   $('#startBtn').classList.remove('running');
 }
 $('#startBtn').addEventListener('click', startPause);
 $('#resetBtn').addEventListener('click', resetTimer);
-$('#focusMin').addEventListener('change', ()=>{ if(!running && phase==='focus') setPhase('focus'); });
-$('#breakMin').addEventListener('change', ()=>{ if(!running && phase==='break') setPhase('break'); });
+$('#focusMin').addEventListener('change', ()=>{
+  prefs.focus = +$('#focusMin').value || 30; savePrefs(); markChip();
+  if(!running && phase==='focus') setPhase('focus');
+});
+$('#breakMin').addEventListener('change', ()=>{
+  prefs.brk = +$('#breakMin').value || 5; savePrefs();
+  if(!running && phase==='break') setPhase('break');
+});
+$('#goalInput').addEventListener('input', ()=>{
+  $('#goalInput').classList.remove('need'); $('#goalHint').classList.remove('show');
+});
+$('#goalInput').addEventListener('keydown', e=>{ if(e.key==='Enter') startPause(); });
 
-function logSession(mins){
-  sessions.push({date: todayKey(), mins, taskId: selectedTaskId});
+/* ---------- outcome sheet ---------- */
+function openOutcome(){
+  $('#outMeta').textContent = `${total/60} min ${sessionType}`;
+  $('#outGoal').textContent = currentGoal;
+  $('#outcome').classList.add('show');
+  $('#outcome .outcomes .btn').focus();
+}
+document.querySelectorAll('#outcome [data-outcome]').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    $('#outcome').classList.remove('show');
+    logSession(total/60, b.dataset.outcome);
+    currentGoal = ''; $('#goalInput').value = '';
+    setLocked(false);
+    setPhase('break'); $('#startBtn').textContent='Start break';
+  });
+});
+
+function logSession(mins, outcome){
+  sessions.push({date: todayKey(), ts: Date.now(), mins, taskId: selectedTaskId,
+                 type: sessionType, goal: currentGoal, outcome});
   store.set('tempo.sessions', sessions);
-  renderTodayLine();
+  renderTodayLine(); renderLadder();
 }
 function renderTodayLine(){
-  const t = todayKey();
-  const todays = sessions.filter(s=>s.date===t);
+  const todays = sessions.filter(s=>s.date===todayKey());
   $('#todayMins').textContent = todays.reduce((a,s)=>a+s.mins,0);
   $('#todaySessions').textContent = todays.length;
+  const deep = todays.filter(s=>s.type==='deep').reduce((a,s)=>a+s.mins,0);
+  $('#deepToday').textContent = deep;
+  $('#deepCap').textContent = DAILY_DEEP_CAP;
+  $('#meterFill').style.width = Math.min(100, deep/DAILY_DEEP_CAP*100) + '%';
+  $('#meter').classList.toggle('over', deep >= DAILY_DEEP_CAP);
 }
 
+/* ---------- deep work ladder ---------- */
+// Counts deep sessions at (or above) the current level since the level was set.
+// Shorter deep sessions are ignored; a "missed" goal resets the count.
+function ladderProgress(){
+  let n = 0;
+  for(let i=sessions.length-1; i>=0; i--){
+    const s = sessions[i];
+    if(!s.ts || s.ts < ladder.since) break;
+    if(s.type!=='deep' || s.mins < ladder.level) continue;
+    if(s.outcome==='missed') break;
+    n++;
+  }
+  return n;
+}
+function nextLevel(){ const i = LEVELS.indexOf(ladder.level); return i>=0 && i<LEVELS.length-1 ? LEVELS[i+1] : null; }
+function renderLadder(){
+  const n = Math.min(ladderProgress(), LADDER_N);
+  const next = nextLevel();
+  $('#ladderLevel').textContent = ladder.level;
+  $('#pips').innerHTML = Array.from({length:LADDER_N}, (_,i)=>`<span class="pip${i<n?' on':''}"></span>`).join('');
+  $('#ladderNext').textContent = next ? `${n}/${LADDER_N} to ${next} min` : 'Top level reached';
+  const ready = next && n >= LADDER_N && ladder.snoozedAt !== sessions.length;
+  $('#levelUp').hidden = !ready;
+  if(ready) $('#levelUpText').textContent =
+    `${LADDER_N} deep sessions done at ${ladder.level} min. Ready to train at ${next}?`;
+}
+$('#levelUpYes').addEventListener('click', ()=>{
+  const next = nextLevel(); if(!next) return;
+  ladder = {level:next, since:Date.now(), snoozedAt:-1};
+  store.set('tempo.ladder', ladder);
+  if(!inSession() && phase==='focus') applyPreset(next);
+  renderLadder();
+});
+$('#levelUpNo').addEventListener('click', ()=>{
+  ladder.snoozedAt = sessions.length;   // ask again after the next session
+  store.set('tempo.ladder', ladder);
+  renderLadder();
+});
+
 /* ---------- tasks ---------- */
+function typeTag(t, asButton){
+  if(t.type!=='deep' && t.type!=='shallow') return asButton
+    ? `<button class="tag" title="Set deep or shallow" aria-label="Set work type">tag</button>` : '';
+  return asButton
+    ? `<button class="tag ${t.type}" title="Tap to switch deep/shallow" aria-label="Work type: ${t.type}, tap to switch">${t.type}</button>`
+    : `<span class="tag ${t.type}">${t.type}</span>`;
+}
 function renderTasks(){
   document.querySelectorAll('.quad ul').forEach(u=>u.innerHTML='');
   tasks.filter(t=>!t.done).forEach(t=>{
     const ul = document.querySelector(`.quad ul[data-q="${t.q}"]`);
     if(!ul) return;
     const li = document.createElement('li');
-    li.innerHTML = `<button class="done-btn" title="Mark done" aria-label="Mark done">✓</button><span>${esc(t.name)}</span><button class="del" title="Delete" aria-label="Delete" style="margin-left:auto">×</button>`;
+    li.innerHTML = `<button class="icon done-btn" title="Mark done" aria-label="Mark done">✓</button><span class="name">${esc(t.name)}</span>${typeTag(t,true)}<button class="icon del" title="Delete" aria-label="Delete">×</button>`;
     li.querySelector('.done-btn').addEventListener('click',()=>{ t.done=true; saveTasks(); });
     li.querySelector('.del').addEventListener('click',()=>{ tasks=tasks.filter(x=>x.id!==t.id); saveTasks(); });
+    li.querySelector('.tag').addEventListener('click',()=>{ t.type = t.type==='deep' ? 'shallow' : 'deep'; saveTasks(); });
     ul.appendChild(li);
   });
   renderNextUp();
@@ -423,7 +725,7 @@ function renderTasks(){
 function saveTasks(){ store.set('tempo.tasks', tasks); renderTasks(); }
 $('#addTask').addEventListener('click', ()=>{
   const name = $('#taskName').value.trim(); if(!name) return;
-  tasks.push({id:uid(), name, q:+$('#taskQuad').value, done:false});
+  tasks.push({id:uid(), name, q:+$('#taskQuad').value, type:$('#taskType').value, done:false});
   $('#taskName').value=''; saveTasks();
 });
 $('#taskName').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#addTask').click(); });
@@ -435,10 +737,12 @@ function renderNextUp(){
   open.forEach(t=>{
     const li = document.createElement('li');
     li.className = 'q'+t.q + (t.id===selectedTaskId?' selected':'');
-    li.innerHTML = `<span class="q">Q${t.q}</span><span>${esc(t.name)}</span>`;
+    li.innerHTML = `<span class="q">Q${t.q}</span><span class="name">${esc(t.name)}</span>${typeTag(t,false)}`;
     li.addEventListener('click',()=>{
+      if(inSession()) return;   // task is fixed once a session starts
       selectedTaskId = t.id===selectedTaskId ? null : t.id;
       $('#taskLabel').textContent = selectedTaskId ? t.name : '';
+      if(selectedTaskId && (t.type==='deep' || t.type==='shallow')) setType(t.type);
       renderNextUp();
     });
     ul.appendChild(li);
@@ -472,47 +776,84 @@ $('#addAnchor').addEventListener('click',()=>{
 /* ---------- stats ---------- */
 function lastNDays(n){
   const out=[];
-  for(let i=n-1;i>=0;i--){
-    const d=new Date(); d.setDate(d.getDate()-i);
-    out.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));
-  }
+  for(let i=n-1;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); out.push(dayKey(d)); }
   return out;
 }
 function renderStats(){
   const days = lastNDays(14);
-  const byDay = days.map(d => sessions.filter(s=>s.date===d).reduce((a,s)=>a+s.mins,0));
-  const nSessions = days.reduce((a,d)=>a+sessions.filter(s=>s.date===d).length,0);
-  $('#statTotal').textContent = byDay.reduce((a,b)=>a+b,0);
-  $('#statSessions').textContent = nSessions;
+  const inRange = sessions.filter(s=>days.includes(s.date));
+  const split = days.map(d=>{
+    const ss = inRange.filter(s=>s.date===d);
+    const sum = f => ss.filter(f).reduce((a,s)=>a+s.mins,0);
+    return {d, deep:sum(s=>s.type==='deep'), shallow:sum(s=>s.type==='shallow'),
+            other:sum(s=>s.type!=='deep' && s.type!=='shallow')};
+  });
+  const totDeep = split.reduce((a,x)=>a+x.deep,0);
+  const totShallow = split.reduce((a,x)=>a+x.shallow,0);
+  const totOther = split.reduce((a,x)=>a+x.other,0);
 
+  $('#statTotal').textContent = totDeep + totShallow + totOther;
+  $('#statSessions').textContent = inRange.length;
+
+  // streak
   let streak=0;
   for(let i=0;;i++){
     const d=new Date(); d.setDate(d.getDate()-i);
-    const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    const has = sessions.some(s=>s.date===k);
+    const has = sessions.some(s=>s.date===dayKey(d));
     if(has) streak++;
     else if(i===0) continue;   // today can still be earned
     else break;
   }
   $('#statStreak').textContent = streak;
 
-  const svg = $('#chart'); svg.innerHTML='';
-  const W=700, H=220, pad=28, bw=(W-pad*2)/14 - 8;
-  const max = Math.max(60, ...byDay);
-  days.forEach((d,i)=>{
-    const v = byDay[i];
-    const h = v/max*(H-pad*2);
-    const x = pad + i*((W-pad*2)/14) + 4;
-    const y = H-pad-h;
+  // deep ratio
+  const tagged = totDeep + totShallow;
+  $('#statDeep').textContent = tagged ? Math.round(totDeep/tagged*100)+'%' : '—';
+  $('#statDeepSub').textContent = tagged ? `${totDeep} deep · ${totShallow} shallow min` : 'Tag sessions deep or shallow';
+
+  // goals hit
+  const withOutcome = inRange.filter(s=>s.outcome);
+  const cnt = o => withOutcome.filter(s=>s.outcome===o).length;
+  $('#statHit').textContent = withOutcome.length ? Math.round(cnt('hit')/withOutcome.length*100)+'%' : '—';
+  $('#statHitSub').textContent = withOutcome.length
+    ? `${cnt('hit')} hit · ${cnt('partial')} partly · ${cnt('missed')} missed` : 'No goal sessions yet';
+
+  // ladder
+  const next = nextLevel();
+  $('#statLevel').textContent = ladder.level;
+  $('#statLevelSub').textContent = next
+    ? `${Math.min(ladderProgress(),LADDER_N)}/${LADDER_N} sessions to ${next}` : 'Top level';
+
+  // stacked chart
+  const svg = $('#chart'); let html='';
+  const W=700, H=220, pad=28, slot=(W-pad*2)/14, bw=slot-8;
+  const max = Math.max(60, ...split.map(x=>x.deep+x.shallow+x.other));
+  const scale = v => v/max*(H-pad*2);
+  split.forEach((x,i)=>{
+    const bx = pad + i*slot + 4;
+    let y = H-pad;
+    const total = x.deep+x.shallow+x.other;
+    if(!total){
+      html += `<rect x="${bx}" y="${H-pad-2}" width="${bw}" height="2" rx="1" fill="var(--ink-30)"><title>${x.d}: 0 min</title></rect>`;
+    }
+    [['deep','var(--cobalt)'],['shallow','var(--sage)'],['other','var(--ink-30)']].forEach(([k,col])=>{
+      const v = x[k]; if(!v) return;
+      const h = scale(v); y -= h;
+      html += `<rect x="${bx}" y="${y}" width="${bw}" height="${h}" fill="${col}"><title>${x.d}: ${v} min ${k==='other'?'untagged':k}</title></rect>`;
+    });
     const isToday = i===13;
-    svg.innerHTML += `<rect x="${x}" y="${y}" width="${bw}" height="${Math.max(h,2)}" rx="4" fill="${isToday?'var(--signal)':'var(--cobalt)'}" opacity="${v? '1':'0.25'}"><title>${d}: ${v} min</title></rect>`;
-    svg.innerHTML += `<text x="${x+bw/2}" y="${H-10}" font-size="9" text-anchor="middle" fill="var(--ink-60)" font-family="IBM Plex Mono">${d.slice(8)}</text>`;
-    if(v) svg.innerHTML += `<text x="${x+bw/2}" y="${y-5}" font-size="9" text-anchor="middle" fill="var(--ink-60)" font-family="IBM Plex Mono">${v}</text>`;
+    html += `<text x="${bx+bw/2}" y="${H-10}" font-size="9" text-anchor="middle" fill="${isToday?'var(--signal)':'var(--ink-60)'}" font-weight="${isToday?600:400}" font-family="IBM Plex Mono">${x.d.slice(8)}</text>`;
+    if(total) html += `<text x="${bx+bw/2}" y="${y-5}" font-size="9" text-anchor="middle" fill="var(--ink-60)" font-family="IBM Plex Mono">${total}</text>`;
   });
+  svg.innerHTML = html;
 }
 
 /* ---------- init ---------- */
-renderTicks(); renderAnchorArcs(); renderAnchors(); renderTasks(); renderTodayLine();
+$('#focusMin').value = prefs.focus;
+$('#breakMin').value = prefs.brk;
+markChip();
+setType(sessionType);
+renderTicks(); renderAnchorArcs(); renderAnchors(); renderTasks(); renderTodayLine(); renderLadder();
 setPhase('focus'); drawTimer();
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(()=>{});
