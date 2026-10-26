@@ -1,7 +1,7 @@
 {
   "name": "Tempo — Focus Timer",
   "short_name": "Tempo",
-  "description": "Hybrid time-blocking, Pomodoro and Eisenhower productivity timer",
+  "description": "Deep work focus timer: time-blocking anchors, goal-based focus sessions and an Eisenhower matrix",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
